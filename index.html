@@ -333,12 +333,12 @@
     .btn-icon:hover { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
     .main-content { padding-top: 24px; padding-bottom: 140px; }
 
-    /* BANNER & METRICS */
+    /* BANNER & METRICS CON JUSTIFICACIÓN PROFESIONAL */
     .banner-drip { display: flex; align-items: center; gap: 16px; padding: 20px 24px; margin-bottom: 24px; position: relative; overflow: hidden; }
     .banner-drip::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--gold-primary), var(--cyan-primary)); }
     .banner-icon { font-size: 2rem; flex-shrink: 0; }
-    .banner-text h3 { font-family: var(--font-outfit); font-size: 1.1rem; margin-bottom: 2px; }
-    .banner-text p { font-size: 0.85rem; color: var(--text-muted); }
+    .banner-text h3 { font-family: var(--font-outfit); font-size: 1.1rem; margin-bottom: 4px; }
+    .banner-text p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
     .banner-badge { margin-left: auto; font-size: 0.75rem; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--border-cyan); color: var(--cyan-primary); padding: 5px 12px; border-radius: 16px; white-space: nowrap; }
 
     .metrics-single { max-width: 450px; margin: 0 auto 30px auto; }
@@ -588,15 +588,15 @@
 
     <main class="container main-content">
 
-      <!-- BANNER ACCESO LIBRE -->
+      <!-- BANNER ACCESO LIBRE CON JUSTIFICACIÓN PROFESIONAL -->
       <section class="banner-drip glass-panel">
         <div class="banner-icon">
-          <i class="fa-solid fa-music text-gold"></i>
+          <i class="fa-solid fa-graduation-cap text-gold"></i>
         </div>
         <div class="banner-text">
-          <h3>🎓 Reproducción Libre de Audios & Descargas Directas</h3>
+          <h3>🎓 Reproducción Ilimitada & Límite Diario de Descargas</h3>
           <p>
-            Escucha las pistas de audio de <strong>todas las partituras libremente</strong>. Dispones de <strong>5 descargas diarias</strong> para elegir y obtener tus partituras en PDF y audios MP3 por separado.
+            Para garantizar la máxima velocidad de descarga y promover un aprendizaje progresivo día a día, puedes <strong>escuchar y practicar con las pistas de audio de todas las partituras libremente</strong>. Dispones de <strong>5 descargas diarias</strong> para elegir y guardar tus partituras en PDF y audios MP3 por separado directamente en tu dispositivo.
           </p>
         </div>
         <div class="banner-badge">
@@ -1076,7 +1076,7 @@
             .from('profiles')
             .select('*')
             .eq('email', email)
-            .single();
+            .maybeSingle();
 
           if (error || !profile) {
             if (email === 'gabo@gmail.com' || email === 'test@gmail.com') {
@@ -1143,7 +1143,7 @@
           .from('user_progress')
           .select('*')
           .eq('user_id', state.user.id)
-          .single();
+          .maybeSingle();
 
         state.progress = progress || { downloads_today: 0, max_daily_downloads: 5 };
 
@@ -1397,26 +1397,33 @@
 
       if (supabaseClient) {
         try {
-          // Intentar vía RPC (Función Segura de Supabase)
+          // Intentar primero vía RPC segura
           const { data, error } = await supabaseClient.rpc('admin_create_user', {
             user_email: email,
             user_name: fullName
           });
 
           if (error) {
-            console.warn("RPC no encontrado o error, intentando inserción con UUID v4:", error);
-            const validUuid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : '00000000-0000-4000-a000-' + Date.now().toString(16).padStart(12, '0');
+            console.warn("Error en RPC, intentando alta directa vía upsert:", error);
             
+            const { data: existingProfile } = await supabaseClient
+              .from('profiles')
+              .select('id')
+              .eq('email', email)
+              .maybeSingle();
+
+            const targetId = existingProfile ? existingProfile.id : crypto.randomUUID();
+
             await supabaseClient
               .from('profiles')
-              .insert([{ id: validUuid, email: email, full_name: fullName, is_admin: false, is_active: true }]);
+              .upsert([{ id: targetId, email: email, full_name: fullName, is_admin: false, is_active: true }], { onConflict: 'email' });
 
             await supabaseClient
               .from('user_progress')
-              .insert([{ user_id: validUuid, unlocked_day: 365, max_daily_downloads: 5 }]);
+              .upsert([{ user_id: targetId, unlocked_day: 365, max_daily_downloads: 5 }], { onConflict: 'user_id' });
           }
         } catch (err) {
-          console.error("Error al registrar perfil en Supabase:", err);
+          console.error("Error al registrar perfil:", err);
         }
       }
 
