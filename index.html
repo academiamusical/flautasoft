@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal VIP del Estudiante | 365 Partituras de Flauta Dulce</title>
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Supabase JS Client v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- ESTILOS UNIFICADOS -->
+  <style>
+    :root {
+      --bg-dark: #0a0d14;
+      --bg-card: rgba(17, 24, 39, 0.8);
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --border-glass: rgba(212, 175, 55, 0.25);
+      --border-cyan: rgba(0, 229, 255, 0.3);
+      
+      --gold-primary: #D4AF37;
+      --gold-light: #F7E7A1;
+      --gold-glow: rgba(212, 175, 55, 0.35);
+      
+      --cyan-primary: #00E5FF;
+      --cyan-light: #80F5FF;
+      --cyan-glow: rgba(0, 229, 255, 0.4);
+      
+      --text-main: #F3F4F6;
+      --text-muted: #9CA3AF;
+      
+      --font-outfit: 'Outfit', sans-serif;
+      --font-inter: 'Inter', sans-serif;
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(0, 229, 255, 0.06) 0%, transparent 40%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: var(--font-inter);
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .font-outfit { font-family: var(--font-outfit); }
+    .text-gold { color: var(--gold-primary) !important; }
+    .text-cyan { color: var(--cyan-primary) !important; }
+    .text-muted { color: var(--text-muted); }
+    .text-left { text-align: left; }
+    .text-center { text-align: center; }
+    .d-none { display: none !important; }
+    .d-flex { display: flex !important; }
+    .justify-content-between { justify-content: space-between !important; }
+    .align-items-center { align-items: center !important; }
+
+    .mb-0 { margin-bottom: 0 !important; }
+    .mb-6 { margin-bottom: 6px; }
+    .mb-8 { margin-bottom: 8px; }
+    .mb-12 { margin-bottom: 12px; }
+    .mb-15 { margin-bottom: 15px; }
+    .mb-20 { margin-bottom: 20px; }
+    .mt-12 { margin-top: 12px; }
+    .py-20 { padding-top: 20px; padding-bottom: 20px; }
+
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+    /* BANNER DE ANUNCIO SEMANAL SUPERIOR */
+    .weekly-announcement-bar {
+      background: linear-gradient(90deg, #111827 0%, #1e1b4b 50%, #111827 100%);
+      border-bottom: 1px solid var(--gold-glow);
+      padding: 8px 0;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+    }
+
+    .announcement-content { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .glow-icon { filter: drop-shadow(0 0 6px var(--gold-primary)); animation: pulse-glow 2s infinite ease-in-out; }
+
+    @keyframes pulse-glow {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px var(--gold-primary)); }
+      50% { transform: scale(1.15); filter: drop-shadow(0 0 10px var(--gold-light)); }
+    }
+
+    .badge-announcement {
+      background: rgba(0, 229, 255, 0.15);
+      border: 1px solid var(--border-cyan);
+      color: var(--cyan-primary);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    /* GLASSMORPHISM PANEL */
+    .glass-panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      font-family: var(--font-outfit);
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      touch-action: manipulation;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #D4AF37 0%, #AA820A 100%);
+      color: #000;
+      box-shadow: 0 4px 20px var(--gold-glow);
+    }
+
+    .btn-primary:hover, .btn-primary:active {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(212, 175, 55, 0.55);
+      background: linear-gradient(135deg, #F7E7A1 0%, #D4AF37 100%);
+    }
+
+    .btn-cyan-solid {
+      background: linear-gradient(135deg, #00E5FF 0%, #0088FF 100%);
+      color: #000;
+      box-shadow: 0 4px 20px var(--cyan-glow);
+    }
+
+    .btn-cyan-solid:hover, .btn-cyan-solid:active {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(0, 229, 255, 0.65);
+      background: linear-gradient(135deg, #80F5FF 0%, #00E5FF 100%);
+    }
+
+    .btn-outline-cyan {
+      background: rgba(0, 229, 255, 0.05);
+      color: var(--cyan-primary);
+      border: 1px solid var(--border-cyan);
+    }
+
+    .btn-outline-cyan:hover, .btn-outline-cyan:active {
+      background: rgba(0, 229, 255, 0.15);
+      box-shadow: 0 4px 15px var(--cyan-glow);
+    }
+
+    .btn-outline-gold {
+      background: rgba(212, 175, 55, 0.08);
+      color: var(--gold-primary);
+      border: 1px solid var(--border-glass);
+    }
+
+    .btn-outline-gold:hover {
+      background: rgba(212, 175, 55, 0.2);
+      box-shadow: 0 4px 15px var(--gold-glow);
+    }
+
+    .btn-edit-sm {
+      background: rgba(0, 229, 255, 0.1);
+      color: var(--cyan-primary);
+      border: 1px solid var(--border-cyan);
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+
+    .btn-edit-sm:hover { background: rgba(0, 229, 255, 0.25); }
+
+    .btn-danger-sm {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+
+    .btn-danger-sm:hover { background: rgba(239, 68, 68, 0.3); color: #fff; }
+
+    .btn-block { width: 100%; }
+    .btn-sm { padding: 8px 14px; font-size: 0.85rem; }
+    .btn-lg { padding: 14px 22px; font-size: 1rem; }
+
+    /* AUTH / LOGIN */
+    .auth-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 16px; position: relative; }
+
+    .auth-glow {
+      position: absolute;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 0; pointer-events: none;
+    }
+
+    .auth-card { width: 100%; max-width: 440px; padding: 32px 24px; position: relative; z-index: 1; }
+
+    .brand-logo-svg {
+      display: block; margin: 0 auto 12px auto;
+      filter: drop-shadow(0 0 12px var(--gold-glow));
+    }
+
+    .brand-header h1 { font-size: 1.7rem; font-weight: 800; margin-bottom: 4px; }
+    .brand-header h1 span { color: var(--gold-primary); }
+    .brand-header .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px; }
+
+    .info-pass-box {
+      background: rgba(212, 175, 55, 0.1);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px; margin-bottom: 20px;
+      font-size: 0.82rem; color: var(--gold-light);
+      display: flex; align-items: center; gap: 10px; text-align: left;
+    }
+
+    .info-pass-box i { font-size: 1.3rem; flex-shrink: 0; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 6px; color: var(--text-muted); }
+
+    .form-control {
+      width: 100%; padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-sm);
+      color: var(--text-main); font-size: 0.95rem;
+      transition: var(--transition);
+    }
+
+    .form-control:focus { outline: none; border-color: var(--gold-primary); box-shadow: 0 0 12px var(--gold-glow); }
+    .form-row { display: flex; gap: 12px; }
+    .col-6 { flex: 1; }
+
+    .auth-footer { margin-top: 20px; font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 12px; align-items: center; }
+
+    /* BOTÓN PEQUEÑO DE SOPORTE EN LOGIN */
+    .btn-support-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--cyan-primary);
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid var(--border-cyan);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .btn-support-link:hover {
+      background: rgba(0, 229, 255, 0.2);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .alert-box {
+      padding: 12px; border-radius: var(--radius-sm);
+      font-size: 0.85rem; margin-bottom: 16px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+
+    /* DASHBOARD & TOPBAR */
+    .topbar {
+      background: rgba(10, 13, 20, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-glass);
+      padding: 12px 0;
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand-mini { display: flex; align-items: center; gap: 10px; }
+    .logo-icon-sm { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+    .brand-title { font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; display: block; }
+
+    .badge-vip {
+      font-size: 0.68rem;
+      background: linear-gradient(90deg, #D4AF37, #AA820A);
+      color: #000; padding: 2px 8px; border-radius: 12px;
+      font-weight: 700; text-transform: uppercase;
+    }
+
+    .badge-admin-tag { background: linear-gradient(90deg, #00E5FF, #0088FF) !important; color: #000 !important; }
+
+    .user-menu { display: flex; align-items: center; gap: 10px; }
+    .user-info { text-align: right; display: flex; flex-direction: column; }
+    .user-name { font-weight: 600; font-size: 0.85rem; }
+    .user-email { font-size: 0.72rem; color: var(--text-muted); }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      width: 36px; height: 36px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: var(--transition);
+    }
+
+    .btn-icon:hover { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
+    .main-content { padding-top: 24px; padding-bottom: 140px; }
+
+    /* BANNER & METRICS */
+    .banner-drip { display: flex; align-items: center; gap: 16px; padding: 20px 24px; margin-bottom: 24px; position: relative; overflow: hidden; }
+    .banner-drip::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--gold-primary), var(--cyan-primary)); }
+    .banner-icon { font-size: 2rem; flex-shrink: 0; }
+    .banner-text h3 { font-family: var(--font-outfit); font-size: 1.1rem; margin-bottom: 2px; }
+    .banner-text p { font-size: 0.85rem; color: var(--text-muted); }
+    .banner-badge { margin-left: auto; font-size: 0.75rem; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--border-cyan); color: var(--cyan-primary); padding: 5px 12px; border-radius: 16px; white-space: nowrap; }
+
+    .metrics-single { max-width: 450px; margin: 0 auto 30px auto; }
+    .metric-card { padding: 20px; text-align: center; }
+    .metric-card.border-cyan { border-color: var(--border-cyan); }
+    .metric-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 12px; }
+    .quota-counter { font-size: 2.2rem; font-weight: 800; color: var(--cyan-primary); }
+    .quota-counter .slash { color: var(--text-muted); font-size: 1.5rem; }
+
+    /* CATALOG & SEARCH BAR */
+    .catalog-header { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+    .catalog-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .catalog-header h2 { font-size: 1.4rem; font-weight: 700; }
+
+    .search-box-wrapper { position: relative; min-width: 280px; flex: 1; max-width: 380px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 0.95rem; pointer-events: none; }
+    .search-input { padding-left: 40px !important; border-radius: 20px !important; background: rgba(17, 24, 39, 0.9) !important; border: 1px solid var(--border-glass) !important; }
+    .search-input:focus { border-color: var(--gold-primary) !important; box-shadow: 0 0 15px var(--gold-glow) !important; }
+
+    .category-filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+    .category-filters::-webkit-scrollbar { height: 4px; }
+    .category-filters::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+
+    .filter-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted); padding: 6px 14px;
+      border-radius: 16px; font-size: 0.82rem; cursor: pointer;
+      white-space: nowrap; transition: var(--transition);
+    }
+
+    .filter-pill.active, .filter-pill:hover { background: var(--gold-primary); color: #000; font-weight: 600; border-color: var(--gold-primary); }
+
+    .songs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+    .song-card {
+      overflow: hidden; padding: 0; display: flex; flex-direction: column;
+      justify-content: space-between; position: relative; transition: var(--transition);
+    }
+
+    .song-card:hover { transform: translateY(-4px); border-color: var(--gold-primary); box-shadow: 0 12px 30px rgba(0,0,0,0.5); }
+
+    .song-card-cover { position: relative; width: 100%; height: 160px; overflow: hidden; background: #151c2e; }
+    .song-cover-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+    .song-card:hover .song-cover-img { transform: scale(1.05); }
+    .song-cover-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(17, 24, 39, 0.95) 100%); }
+    .song-cover-badge { position: absolute; top: 10px; left: 10px; font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; background: rgba(10, 13, 20, 0.85); backdrop-filter: blur(6px); color: var(--gold-primary); border: 1px solid var(--gold-glow); }
+
+    .song-card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .song-title { font-family: var(--font-outfit); font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; }
+    .song-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; flex: 1; }
+
+    .song-card-footer { padding: 0 16px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .song-actions-row { display: flex; gap: 8px; }
+
+    /* AUDIO PLAYER STICKY FOOTER */
+    .audio-player-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      z-index: 200; border-radius: 0; border-top: 1px solid var(--border-glass);
+      background: rgba(10, 13, 20, 0.95); padding: 12px 0;
+    }
+
+    .player-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .player-track-info { display: flex; align-items: center; gap: 12px; width: 220px; }
+    .disc-spin { width: 40px; height: 40px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-glass); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .disc-spin.active i { animation: spin 6s linear infinite; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    .track-details { overflow: hidden; display: flex; flex-direction: column; }
+    .track-title { font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-sub { font-size: 0.72rem; color: var(--text-muted); }
+
+    .player-controls { flex: 1; max-width: 500px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .btn-player-main { width: 40px; height: 40px; border-radius: 50%; background: var(--gold-primary); color: #000; border: none; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px var(--gold-glow); }
+    .player-timeline { width: 100%; display: flex; align-items: center; gap: 10px; }
+    .player-timeline .time { font-size: 0.72rem; color: var(--text-muted); width: 32px; }
+    .seek-slider, .volume-slider { flex: 1; accent-color: var(--gold-primary); cursor: pointer; }
+    .player-actions { display: flex; align-items: center; gap: 8px; width: 140px; justify-content: flex-end; }
+
+    /* MODALS */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-card { width: 100%; max-width: 480px; padding: 24px; max-height: 90vh; overflow-y: auto; }
+    .modal-card.max-w-500 { max-width: 500px; }
+    .modal-card.max-w-550 { max-width: 550px; }
+    .modal-card.max-w-600 { max-width: 600px; }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .badge-signed { font-size: 0.72rem; color: var(--cyan-primary); background: rgba(0, 229, 255, 0.1); padding: 3px 8px; border-radius: 10px; }
+    .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.6rem; cursor: pointer; }
+
+    .versions-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+    .version-item { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: var(--transition); }
+    .version-item:hover { background: rgba(212, 175, 55, 0.08); border-color: var(--gold-primary); }
+    .version-info { display: flex; flex-direction: column; }
+    .version-name { font-weight: 600; font-size: 0.92rem; color: var(--text-main); }
+    .version-tag { font-size: 0.75rem; color: var(--cyan-primary); }
+
+    .download-buttons-stack { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+
+    /* GESTOR DINÁMICO DE VERSIONES ADMIN */
+    .admin-versions-container { display: flex; flex-direction: column; gap: 12px; }
+    .admin-version-card { background: rgba(0, 0, 0, 0.35); border: 1px dashed var(--border-glass); border-radius: var(--radius-sm); padding: 14px; display: flex; flex-direction: column; gap: 8px; position: relative; }
+    .admin-version-card-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; font-weight: 600; color: var(--gold-primary); }
+    .btn-remove-version { background: none; border: none; color: #fca5a5; font-size: 0.8rem; cursor: pointer; padding: 2px 6px; }
+    .btn-remove-version:hover { color: #ef4444; }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 768px) {
+      .topbar-inner { flex-wrap: wrap; }
+      .user-info { display: none; }
+      .banner-drip { flex-direction: column; text-align: center; }
+      .banner-badge { margin-left: 0; }
+      .player-inner { flex-direction: column; gap: 8px; }
+      .player-track-info { width: 100%; justify-content: center; }
+      .player-actions { display: none; }
+      .main-content { padding-bottom: 180px; }
+      .search-box-wrapper { max-width: 100%; min-width: 100%; }
+    }
+
+    @media (max-width: 480px) {
+      .auth-card { padding: 24px 16px; }
+      .songs-grid { grid-template-columns: 1fr; }
+      .version-item { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body class="bg-dark text-light">
+
+  <!-- ========================================== -->
+  <!-- VISTA DE AUTENTICACIÓN (LOGIN SOLO POR CORREO) -->
+  <!-- ========================================== -->
+  <section id="auth-section" class="auth-wrapper">
+    <div class="auth-glow"></div>
+    <div class="auth-card glass-panel text-center">
+      <div class="brand-header">
+        <div class="brand-logo-svg">
+          <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="48" fill="#0A0D14" stroke="url(#gold-grad)" stroke-width="2.5"/>
+            <path d="M48 18H52V82H48V18Z" fill="url(#gold-grad)"/>
+            <path d="M48 18C48 15 52 15 52 18V24H48V18Z" fill="#F7E7A1"/>
+            <circle cx="50" cy="34" r="2.5" fill="#0A0D14"/>
+            <circle cx="50" cy="42" r="2.5" fill="#0A0D14"/>
+            <circle cx="50" cy="50" r="2.5" fill="#0A0D14"/>
+            <circle cx="50" cy="58" r="2.5" fill="#0A0D14"/>
+            <circle cx="50" cy="66" r="2.5" fill="#0A0D14"/>
+            <circle cx="50" cy="74" r="2.5" fill="#0A0D14"/>
+            <path d="M42 30C35 25 30 35 25 45C20 55 15 65 25 70C35 75 40 60 42 55" stroke="#00E5FF" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.6"/>
+            <path d="M58 30C65 25 70 35 75 45C80 55 85 65 75 70C65 75 60 60 58 55" stroke="#D4AF37" stroke-width="1.5" opacity="0.6"/>
+            <defs>
+              <linearGradient id="gold-grad" x1="48" y1="18" x2="52" y2="82" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#F7E7A1"/>
+                <stop offset="0.5" stop-color="#D4AF37"/>
+                <stop offset="1" stop-color="#AA820A"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <h1 class="font-outfit">Portal <span>365</span> Flauta Dulce</h1>
+        <p class="subtitle">Ingresa con el correo de tu compra en Hotmart</p>
+      </div>
+
+      <div class="info-pass-box">
+        <i class="fa-solid fa-envelope-circle-check text-gold"></i>
+        <span>Ingresa la dirección de correo electrónico con la que compraste en Hotmart. Tu acceso está vinculado directamente a tu compra.</span>
+      </div>
+
+      <div id="auth-alert" class="alert-box d-none"></div>
+
+      <form id="login-form" class="auth-form text-left">
+        <div class="form-group">
+          <label for="login-email"><i class="fa-regular fa-envelope"></i> Correo Electrónico Registrado</label>
+          <input type="email" id="login-email" class="form-control" placeholder="ejemplo: tu-correo@gmail.com" required>
+        </div>
+
+        <button type="submit" id="btn-login" class="btn btn-primary btn-block">
+          <span>Ingresar al Portal VIP</span>
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p><i class="fa-solid fa-shield-halved text-gold"></i> Verificación automática de la compra vía Hotmart Webhook</p>
+        
+        <!-- BOTÓN PEQUEÑO DE SOPORTE DIRECTO -->
+        <a href="mailto:gabriel.garces726@gmail.com?subject=Soporte%20Acceso%20Portal%20Flauta%20Dulce" class="btn-support-link">
+          <i class="fa-solid fa-headset"></i> ¿No te deja entrar y ya pagaste? Escríbenos a soporte
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ========================================== -->
+  <!-- VISTA PRINCIPAL (DASHBOARD) -->
+  <!-- ========================================== -->
+  <div id="app-dashboard" class="d-none">
+
+    <div class="weekly-announcement-bar">
+      <div class="container text-center">
+        <span class="announcement-content">
+          <i class="fa-solid fa-rocket text-gold glow-icon"></i> 
+          <strong>¡Nuevas partituras con pista de audio cada semana!</strong> 
+          <span class="badge-announcement">¡Catálogo en constante expansión!</span>
+        </span>
+      </div>
+    </div>
+
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand-mini">
+          <div class="logo-icon-sm">
+            <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="48" fill="#0A0D14" stroke="#D4AF37" stroke-width="3"/>
+              <path d="M48 18H52V82H48V18Z" fill="#D4AF37"/>
+              <circle cx="50" cy="34" r="3" fill="#0A0D14"/>
+              <circle cx="50" cy="50" r="3" fill="#0A0D14"/>
+              <circle cx="50" cy="66" r="3" fill="#0A0D14"/>
+            </svg>
+          </div>
+          <div>
+            <span class="brand-title font-outfit">FLAUTA DULCE 365</span>
+            <span id="user-badge" class="badge-vip"><i class="fa-solid fa-crown"></i> Estudiante VIP</span>
+          </div>
+        </div>
+
+        <div class="user-menu">
+          <!-- BOTÓN ALTA MANUAL PARA ADMIN -->
+          <button id="btn-admin-user-panel" class="btn btn-sm btn-outline-gold d-none">
+            <i class="fa-solid fa-user-plus"></i> + Dar Acceso Manual
+          </button>
+
+          <button id="btn-admin-panel" class="btn btn-sm btn-outline-cyan d-none">
+            <i class="fa-solid fa-plus-circle"></i> + Agregar Partitura
+          </button>
+
+          <div class="user-info">
+            <span id="user-display-name" class="user-name">Estudiante</span>
+            <span id="user-display-email" class="user-email">alumno@correo.com</span>
+          </div>
+          <button id="btn-logout" class="btn-icon" title="Cerrar Sesión">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container main-content">
+
+      <!-- BANNER ACCESO LIBRE -->
+      <section class="banner-drip glass-panel">
+        <div class="banner-icon">
+          <i class="fa-solid fa-music text-gold"></i>
+        </div>
+        <div class="banner-text">
+          <h3>🎓 Reproducción Libre de Audios & Descargas Directas</h3>
+          <p>
+            Escucha las pistas de audio de <strong>todas las partituras libremente</strong>. Dispones de <strong>5 descargas diarias</strong> para elegir y obtener tus partituras en PDF y audios MP3 por separado.
+          </p>
+        </div>
+        <div class="banner-badge">
+          <i class="fa-solid fa-cloud-arrow-down text-cyan"></i> 5 Descargas / Día
+        </div>
+      </section>
+
+      <!-- MÉTRICA DE CUOTA DIARIA -->
+      <div class="metrics-grid metrics-single">
+        <div class="metric-card glass-panel border-cyan">
+          <div class="metric-header">
+            <span>CUOTA DIARIA DE DESCARGAS</span>
+            <i class="fa-solid fa-download text-cyan"></i>
+          </div>
+          <div class="metric-body">
+            <div class="quota-counter font-outfit" id="quota-display-container">
+              <span id="downloads-today-num">0</span> <span class="slash">/</span> <span id="max-downloads-num">5</span>
+            </div>
+            <p class="subtext"><i class="fa-solid fa-clock-rotate-left"></i> Se reinicia automáticamente cada 24 horas</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATÁLOGO DE CANCIONES CON PORTADAS Y BUSCADOR POR TÍTULO -->
+      <section class="catalog-section">
+        <div class="catalog-header">
+          <div class="catalog-title-row">
+            <div>
+              <h2 class="font-outfit"><i class="fa-solid fa-layer-group text-gold"></i> Biblioteca de Partituras</h2>
+              <p class="text-muted">Escucha el audio de cualquier partitura y descarga las versiones PDF o MP3 que necesites.</p>
+            </div>
+
+            <div class="search-box-wrapper">
+              <i class="fa-solid fa-magnifying-glass search-icon text-gold"></i>
+              <input type="text" id="catalog-search-input" class="form-control search-input" placeholder="Buscar partitura por título...">
+            </div>
+          </div>
+
+          <div class="category-filters" id="category-filters">
+            <button class="filter-pill active" data-category="ALL">Todas</button>
+            <button class="filter-pill" data-category="Infantil">Infantil</button>
+            <button class="filter-pill" data-category="Clásica">Clásica</button>
+            <button class="filter-pill" data-category="Pop">Pop / Cine</button>
+            <button class="filter-pill" data-category="Navideña">Navideña</button>
+            <button class="filter-pill" data-category="Folclor">Folclor</button>
+            <button class="filter-pill" data-category="Tradicional">Tradicional</button>
+          </div>
+        </div>
+
+        <div id="songs-grid" class="songs-grid">
+          <div class="loading-state">
+            <i class="fa-solid fa-circle-notch fa-spin text-gold"></i>
+            <p>Cargando partituras y portadas...</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- REPRODUCTOR DE AUDIO INTEGRADO STICKY FOOTER -->
+    <div id="audio-player-bar" class="audio-player-bar glass-panel d-none">
+      <div class="container player-inner">
+        <div class="player-track-info">
+          <div class="disc-spin active">
+            <i class="fa-solid fa-compact-disc text-gold"></i>
+          </div>
+          <div class="track-details">
+            <span id="player-track-title" class="track-title">Selecciona una canción</span>
+            <span id="player-track-sub" class="track-sub">Partitura & Audio Acompañamiento</span>
+          </div>
+        </div>
+
+        <div class="player-controls">
+          <div class="btn-controls-group">
+            <button id="player-btn-play" class="btn-player-main" title="Reproducir / Pausa"><i class="fa-solid fa-play"></i></button>
+          </div>
+          <div class="player-timeline">
+            <span id="player-time-current" class="time">0:00</span>
+            <input type="range" id="player-seek" class="seek-slider" min="0" max="100" value="0">
+            <span id="player-time-total" class="time">0:00</span>
+          </div>
+        </div>
+
+        <div class="player-actions">
+          <button id="player-btn-mute" class="btn-icon-sm"><i class="fa-solid fa-volume-high"></i></button>
+          <input type="range" id="player-volume" class="volume-slider" min="0" max="1" step="0.05" value="0.8">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- POP-UP MODAL 1: SELECCIONAR VERSIÓN -->
+  <div id="versions-modal" class="modal-backdrop d-none">
+    <div class="modal-card glass-panel max-w-550">
+      <div class="modal-header">
+        <div>
+          <h3 id="versions-song-title" class="font-outfit"><i class="fa-solid fa-list-check text-gold"></i> Selecciona la Versión</h3>
+          <span id="versions-quota-badge" class="badge-signed"><i class="fa-solid fa-shield-halved"></i> Consume 1 crédito de tu cuota diaria</span>
+        </div>
+        <button id="btn-close-versions-modal" class="btn-close">&times;</button>
+      </div>
+
+      <div class="modal-body text-left">
+        <p class="text-muted text-sm mb-15">Elige la versión o arreglo que prefieres descargar:</p>
+        <div id="versions-list" class="versions-list"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- POP-UP MODAL 2: DESCARGA DIRECTA PDF / MP3 -->
+  <div id="download-links-modal" class="modal-backdrop d-none">
+    <div class="modal-card glass-panel max-w-500 text-center">
+      <div class="modal-header text-left">
+        <div>
+          <h3 id="dl-song-title" class="font-outfit"><i class="fa-solid fa-circle-down text-gold"></i> Descarga Directa</h3>
+          <span id="dl-version-name" class="badge-signed">Versión Notación Guiada</span>
+        </div>
+        <button id="btn-close-download-links-modal" class="btn-close">&times;</button>
+      </div>
+
+      <div class="modal-body text-center py-20">
+        <p class="text-muted mb-20">Selecciona el archivo que deseas descargar directamente en tu dispositivo:</p>
+
+        <div class="download-buttons-stack">
+          <button id="btn-dl-pdf-file" class="btn btn-primary btn-block btn-lg">
+            <i class="fa-solid fa-file-pdf"></i> Descargar Partitura PDF
+          </button>
+
+          <button id="btn-dl-mp3-file" class="btn btn-cyan-solid btn-block btn-lg mt-12">
+            <i class="fa-solid fa-music"></i> Descargar Audio MP3 (Acompañamiento)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL ADMIN 1: REGISTRO/ALTA MANUAL DE USUARIO (SOPORTE) -->
+  <div id="admin-user-modal" class="modal-backdrop d-none">
+    <div class="modal-card glass-panel max-w-500">
+      <div class="modal-header">
+        <div>
+          <h3 class="font-outfit"><i class="fa-solid fa-user-plus text-gold"></i> Alta Manual de Usuario VIP</h3>
+          <span class="badge-signed"><i class="fa-solid fa-headset"></i> Soporte / Casos Excepcionales</span>
+        </div>
+        <button id="btn-close-admin-user-modal" class="btn-close">&times;</button>
+      </div>
+
+      <form id="admin-user-form" class="modal-body text-left">
+        <p class="text-muted text-sm mb-15">Usa este formulario para otorgar acceso inmediato a un comprador en caso de que el webhook de Hotmart no se haya disparado:</p>
+
+        <div class="form-group">
+          <label for="admin-user-email"><i class="fa-regular fa-envelope"></i> Correo Electrónico del Comprador</label>
+          <input type="email" id="admin-user-email" class="form-control" placeholder="ejemplo: comprador@gmail.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="admin-user-fullname"><i class="fa-regular fa-user"></i> Nombre Completo (Opcional)</label>
+          <input type="text" id="admin-user-fullname" class="form-control" placeholder="Ejemplo: Juan Pérez">
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fa-solid fa-shield-check"></i> Otorgar Acceso VIP Instantáneo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- MODAL ADMIN 2: GESTOR DE PARTITURAS -->
+  <div id="admin-modal" class="modal-backdrop d-none">
+    <div class="modal-card glass-panel max-w-600">
+      <div class="modal-header">
+        <div>
+          <h3 id="admin-modal-title" class="font-outfit"><i class="fa-solid fa-crown text-gold"></i> Panel Admin: Gestor de Partitura</h3>
+          <span class="badge-signed"><i class="fa-solid fa-user-shield"></i> Gabo (Administrador)</span>
+        </div>
+        <button id="btn-close-admin-modal" class="btn-close">&times;</button>
+      </div>
+
+      <form id="admin-song-form" class="modal-body text-left">
+        <input type="hidden" id="admin-song-id" value="">
+
+        <div class="form-group">
+          <label>Título de la Canción / Partitura</label>
+          <input type="text" id="admin-song-title" class="form-control" placeholder="Ejemplo: Marcha Turca" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label>Categoría</label>
+            <select id="admin-song-category" class="form-control" required>
+              <option value="Infantil">Infantil</option>
+              <option value="Clásica">Clásica</option>
+              <option value="Pop">Pop / Cine</option>
+              <option value="Navideña">Navideña</option>
+              <option value="Folclor">Folclor</option>
+              <option value="Tradicional">Tradicional</option>
+            </select>
+          </div>
+          <div class="form-group col-6">
+            <label>Dificultad</label>
+            <select id="admin-song-difficulty" class="form-control" required>
+              <option value="Principiante">Principiante</option>
+              <option value="Intermedio">Intermedio</option>
+              <option value="Avanzado">Avanzado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-regular fa-image"></i> URL de Imagen de Portada</label>
+          <input type="text" id="admin-song-cover" class="form-control" placeholder="https://sitio.com/portada.jpg (Opcional)">
+        </div>
+
+        <div class="form-group">
+          <label><i class="fa-solid fa-music"></i> Enlace / URL del Audio MP3 General</label>
+          <input type="text" id="admin-song-audio" class="form-control" placeholder="https://sitio.com/audio_general.mp3" required>
+        </div>
+
+        <div class="form-group mb-8">
+          <div class="d-flex justify-content-between align-items-center mb-6">
+            <label class="mb-0"><i class="fa-solid fa-layer-group"></i> Versiones Disponibles (PDF + MP3 Específico)</label>
+            <button type="button" id="btn-add-version-row" class="btn btn-sm btn-outline-cyan">
+              <i class="fa-solid fa-plus"></i> + Añadir Otra Versión
+            </button>
+          </div>
+          
+          <div id="admin-versions-container" class="admin-versions-container"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Descripción o Consejos de Interpretación</label>
+          <textarea id="admin-song-desc" class="form-control" rows="2" placeholder="Notas sobre digitación o articulación..."></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" id="btn-admin-submit" class="btn btn-primary btn-block">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar Partitura y Versiones
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- LÓGICA JAVASCRIPT UNIFICADA -->
+  <!-- ========================================== -->
+  <script>
+    const SUPABASE_URL = "https://nsntamtwwzzjedosipld.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zbnRhbXR3d3p6amVkb3NpcGxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0Mjg0MjQsImV4cCI6MjEwMTAwNDQyNH0.auycX9B716_xbXIrsRqRMKo6rdjL5fdpKfd_gxla0u8";
+
+    const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    const state = {
+      user: null,
+      profile: null,
+      isAdmin: false,
+      progress: { downloads_today: 0, max_daily_downloads: 5 },
+      catalog: [],
+      filteredCatalog: [],
+      selectedCategory: "ALL",
+      searchQuery: "",
+      currentTrack: null,
+      audioElement: new Audio(),
+      isPlaying: false,
+      pendingDownload: { songTitle: '', versionName: '', pdfUrl: '', audioUrl: '' }
+    };
+
+    const DEMO_CATALOG = [
+      { 
+        id: 1, 
+        title: 'Estrellita, ¿Dónde Estás?', 
+        category: 'Infantil', 
+        difficulty: 'Principiante', 
+        cover_image_url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80',
+        audio_r2_key: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3',
+        description: 'Aprende las notas básicas Do-Sol en la flauta dulce con notación guiada en castellano.',
+        versions: [
+          { id: 101, version_name: 'Versión Notación Guiada (Do, Re, Mi)', pdf_url: 'vault/estrellita_guiada.pdf', audio_url: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3' },
+          { id: 102, version_name: 'Versión Notación Estándar Solfeo', pdf_url: 'vault/estrellita_solfeo.pdf', audio_url: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3' },
+          { id: 103, version_name: 'Versión Acompañamiento Dúo', pdf_url: 'vault/estrellita_duo.pdf', audio_url: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3' }
+        ]
+      },
+      { 
+        id: 2, 
+        title: 'Himno a la Alegría (Beethoven)', 
+        category: 'Clásica', 
+        difficulty: 'Principiante', 
+        cover_image_url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80',
+        audio_r2_key: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a82a0d.mp3',
+        description: 'Tema clásico fundamental para dominar la articulación del aire.',
+        versions: [
+          { id: 201, version_name: 'Versión Notación Guiada (Tono Do Mayor)', pdf_url: 'vault/alegria_guiada.pdf', audio_url: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a82a0d.mp3' },
+          { id: 202, version_name: 'Versión Partitura Completa con Acordes', pdf_url: 'vault/alegria_acordes.pdf', audio_url: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a82a0d.mp3' }
+        ]
+      },
+      { 
+        id: 3, 
+        title: 'Cielito Lindo', 
+        category: 'Folclor', 
+        difficulty: 'Principiante', 
+        cover_image_url: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=600&q=80',
+        audio_r2_key: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3',
+        description: 'Melodía tradicional mexicana en compás de 3/4.',
+        versions: [
+          { id: 301, version_name: 'Versión Notación Guiada Tradicional', pdf_url: 'vault/cielito_guiada.pdf', audio_url: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3' }
+        ]
+      },
+      { 
+        id: 4, 
+        title: 'Noche de Paz (Silent Night)', 
+        category: 'Navideña', 
+        difficulty: 'Principiante', 
+        cover_image_url: 'https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=600&q=80',
+        audio_r2_key: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a82a0d.mp3',
+        description: 'Clásico navideño dulce y expresivo.',
+        versions: [
+          { id: 401, version_name: 'Versión Navideña Guiada (Sol Mayor)', pdf_url: 'vault/nochepaz_guiada.pdf', audio_url: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a82a0d.mp3' }
+        ]
+      }
+    ];
+
+    const DOM = {};
+
+    document.addEventListener('DOMContentLoaded', () => {
+      DOM.authSection = document.getElementById('auth-section');
+      DOM.appDashboard = document.getElementById('app-dashboard');
+      DOM.loginForm = document.getElementById('login-form');
+      DOM.loginEmail = document.getElementById('login-email');
+      DOM.authAlert = document.getElementById('auth-alert');
+      DOM.btnLogout = document.getElementById('btn-logout');
+      DOM.userDisplayName = document.getElementById('user-display-name');
+      DOM.userDisplayEmail = document.getElementById('user-display-email');
+      DOM.userBadge = document.getElementById('user-badge');
+      DOM.btnAdminPanel = document.getElementById('btn-admin-panel');
+      DOM.btnAdminUserPanel = document.getElementById('btn-admin-user-panel');
+      DOM.quotaDisplayContainer = document.getElementById('quota-display-container');
+      DOM.songsGrid = document.getElementById('songs-grid');
+      DOM.categoryFilters = document.getElementById('category-filters');
+      DOM.catalogSearchInput = document.getElementById('catalog-search-input');
+      
+      DOM.audioPlayerBar = document.getElementById('audio-player-bar');
+      DOM.playerTrackTitle = document.getElementById('player-track-title');
+      DOM.playerTrackSub = document.getElementById('player-track-sub');
+      DOM.playerBtnPlay = document.getElementById('player-btn-play');
+      DOM.playerTimeCurrent = document.getElementById('player-time-current');
+      DOM.playerTimeTotal = document.getElementById('player-time-total');
+      DOM.playerSeek = document.getElementById('player-seek');
+      DOM.playerVolume = document.getElementById('player-volume');
+      DOM.playerBtnMute = document.getElementById('player-btn-mute');
+      
+      DOM.versionsModal = document.getElementById('versions-modal');
+      DOM.btnCloseVersionsModal = document.getElementById('btn-close-versions-modal');
+      DOM.versionsSongTitle = document.getElementById('versions-song-title');
+      DOM.versionsQuotaBadge = document.getElementById('versions-quota-badge');
+      DOM.versionsList = document.getElementById('versions-list');
+      
+      DOM.downloadLinksModal = document.getElementById('download-links-modal');
+      DOM.btnCloseDownloadLinksModal = document.getElementById('btn-close-download-links-modal');
+      DOM.dlSongTitle = document.getElementById('dl-song-title');
+      DOM.dlVersionName = document.getElementById('dl-version-name');
+      DOM.btnDlPdfFile = document.getElementById('btn-dl-pdf-file');
+      DOM.btnDlMp3File = document.getElementById('btn-dl-mp3-file');
+      
+      // Admin Partituras
+      DOM.adminModal = document.getElementById('admin-modal');
+      DOM.btnCloseAdminModal = document.getElementById('btn-close-admin-modal');
+      DOM.adminModalTitle = document.getElementById('admin-modal-title');
+      DOM.adminSongForm = document.getElementById('admin-song-form');
+      DOM.adminSongId = document.getElementById('admin-song-id');
+      DOM.adminSongTitle = document.getElementById('admin-song-title');
+      DOM.adminSongCategory = document.getElementById('admin-song-category');
+      DOM.adminSongDifficulty = document.getElementById('admin-song-difficulty');
+      DOM.adminSongCover = document.getElementById('admin-song-cover');
+      DOM.adminSongAudio = document.getElementById('admin-song-audio');
+      DOM.adminSongDesc = document.getElementById('admin-song-desc');
+      DOM.adminVersionsContainer = document.getElementById('admin-versions-container');
+      DOM.btnAddVersionRow = document.getElementById('btn-add-version-row');
+      DOM.btnAdminSubmit = document.getElementById('btn-admin-submit');
+
+      // Admin Registro Manual de Usuario
+      DOM.adminUserModal = document.getElementById('admin-user-modal');
+      DOM.btnCloseAdminUserModal = document.getElementById('btn-close-admin-user-modal');
+      DOM.adminUserForm = document.getElementById('admin-user-form');
+      DOM.adminUserEmail = document.getElementById('admin-user-email');
+      DOM.adminUserFullname = document.getElementById('admin-user-fullname');
+
+      setupEventListeners();
+      checkCurrentSession();
+    });
+
+    function setupEventListeners() {
+      DOM.loginForm.addEventListener('submit', handleLoginEmailOnly);
+      DOM.btnLogout.addEventListener('click', handleLogout);
+
+      DOM.categoryFilters.addEventListener('click', (e) => {
+        if (e.target.classList.contains('filter-pill')) {
+          document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+          e.target.classList.add('active');
+          state.selectedCategory = e.target.getAttribute('data-category');
+          renderCatalog();
+        }
+      });
+
+      if (DOM.catalogSearchInput) {
+        DOM.catalogSearchInput.addEventListener('input', (e) => {
+          state.searchQuery = e.target.value.trim().toLowerCase();
+          renderCatalog();
+        });
+      }
+
+      DOM.playerBtnPlay.addEventListener('click', toggleAudioPlay);
+      DOM.playerSeek.addEventListener('input', () => {
+        if (state.audioElement.duration) {
+          state.audioElement.currentTime = (DOM.playerSeek.value / 100) * state.audioElement.duration;
+        }
+      });
+      DOM.playerVolume.addEventListener('input', () => {
+        state.audioElement.volume = DOM.playerVolume.value;
+      });
+      DOM.playerBtnMute.addEventListener('click', () => {
+        state.audioElement.muted = !state.audioElement.muted;
+        DOM.playerBtnMute.innerHTML = state.audioElement.muted ? 
+          '<i class="fa-solid fa-volume-xmark"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+      });
+
+      state.audioElement.addEventListener('timeupdate', updateAudioProgress);
+      state.audioElement.addEventListener('ended', () => {
+        state.isPlaying = false;
+        DOM.playerBtnPlay.innerHTML = '<i class="fa-solid fa-play"></i>';
+      });
+
+      DOM.btnCloseVersionsModal.addEventListener('click', () => DOM.versionsModal.classList.add('d-none'));
+      DOM.btnCloseDownloadLinksModal.addEventListener('click', () => DOM.downloadLinksModal.classList.add('d-none'));
+      DOM.btnCloseAdminModal.addEventListener('click', () => DOM.adminModal.classList.add('d-none'));
+      DOM.btnCloseAdminUserModal.addEventListener('click', () => DOM.adminUserModal.classList.add('d-none'));
+
+      DOM.btnDlPdfFile.addEventListener('click', () => triggerDirectDownload('pdf'));
+      DOM.btnDlMp3File.addEventListener('click', () => triggerDirectDownload('mp3'));
+
+      DOM.btnAdminPanel.addEventListener('click', () => openAdminModalForCreate());
+      DOM.btnAdminUserPanel.addEventListener('click', () => openAdminUserModal());
+      DOM.btnAddVersionRow.addEventListener('click', () => addAdminVersionRow());
+      DOM.adminSongForm.addEventListener('submit', handleAdminSaveSong);
+      DOM.adminUserForm.addEventListener('submit', handleAdminSaveUser);
+    }
+
+    async function checkCurrentSession() {
+      const savedEmail = localStorage.getItem('student_365_email');
+      if (savedEmail) {
+        await processEmailAccess(savedEmail);
+      }
+    }
+
+    async function handleLoginEmailOnly(e) {
+      e.preventDefault();
+      showAlert('');
+      const email = DOM.loginEmail.value.trim().toLowerCase();
+      if (!email) {
+        showAlert('Por favor ingresa tu correo electrónico.');
+        return;
+      }
+      await processEmailAccess(email);
+    }
+
+    async function processEmailAccess(email) {
+      if (supabaseClient) {
+        try {
+          const { data: profile, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('email', email)
+            .single();
+
+          if (error || !profile) {
+            if (email === 'gabo@gmail.com' || email === 'test@gmail.com') {
+              simulateEmailLogin(email);
+              return;
+            }
+            showAlert('❌ No encontramos ninguna compra activa vinculada a este correo en Hotmart.');
+            localStorage.removeItem('student_365_email');
+            return;
+          }
+
+          state.profile = profile;
+          state.user = { id: profile.id, email: profile.email };
+          state.isAdmin = profile.is_admin || (email === 'gabo@gmail.com');
+          localStorage.setItem('student_365_email', email);
+          await loadDashboardData();
+
+        } catch (err) {
+          simulateEmailLogin(email);
+        }
+      } else {
+        simulateEmailLogin(email);
+      }
+    }
+
+    function simulateEmailLogin(email) {
+      if (email !== 'gabo@gmail.com' && email !== 'test@gmail.com' && !email.includes('demo')) {
+        showAlert('❌ Correo no registrado. Compra no encontrada en Hotmart.');
+        return;
+      }
+
+      state.user = { id: "user-" + Date.now(), email: email };
+      state.profile = { full_name: email === 'gabo@gmail.com' ? 'Gabo Administrador' : 'Estudiante 365', is_admin: email === 'gabo@gmail.com' };
+      state.isAdmin = email === 'gabo@gmail.com';
+      state.catalog = [...DEMO_CATALOG];
+      state.progress = { downloads_today: 0, max_daily_downloads: state.isAdmin ? 9999 : 5 };
+
+      localStorage.setItem('student_365_email', email);
+      showDashboard();
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('student_365_email');
+      state.user = null;
+      state.isAdmin = false;
+      state.audioElement.pause();
+      DOM.authSection.classList.remove('d-none');
+      DOM.appDashboard.classList.add('d-none');
+      DOM.audioPlayerBar.classList.add('d-none');
+    }
+
+    function showAlert(msg) {
+      if (!msg) {
+        DOM.authAlert.classList.add('d-none');
+        return;
+      }
+      DOM.authAlert.textContent = msg;
+      DOM.authAlert.classList.remove('d-none');
+    }
+
+    async function loadDashboardData() {
+      try {
+        const { data: progress } = await supabaseClient
+          .from('user_progress')
+          .select('*')
+          .eq('user_id', state.user.id)
+          .single();
+
+        state.progress = progress || { downloads_today: 0, max_daily_downloads: 5 };
+
+        const { data: catalog } = await supabaseClient
+          .from('songs_catalog')
+          .select('*, song_versions(*)')
+          .order('id', { ascending: false });
+
+        state.catalog = (catalog && catalog.length > 0) ? catalog : [...DEMO_CATALOG];
+        showDashboard();
+
+      } catch (err) {
+        simulateEmailLogin(state.user.email);
+      }
+    }
+
+    function showDashboard() {
+      DOM.authSection.classList.add('d-none');
+      DOM.appDashboard.classList.remove('d-none');
+
+      DOM.userDisplayName.textContent = state.profile?.full_name || state.user.email;
+      DOM.userDisplayEmail.textContent = state.user.email;
+
+      if (state.isAdmin) {
+        DOM.userBadge.innerHTML = '<i class="fa-solid fa-crown"></i> Administrador';
+        DOM.userBadge.classList.add('badge-admin-tag');
+        DOM.btnAdminPanel.classList.remove('d-none');
+        DOM.btnAdminUserPanel.classList.remove('d-none');
+        DOM.quotaDisplayContainer.innerHTML = `<span style="font-size: 1.6rem; color: var(--gold-primary);"><i class="fa-solid fa-infinity"></i> Descargas Ilimitadas</span>`;
+        DOM.versionsQuotaBadge.innerHTML = `<i class="fa-solid fa-crown"></i> Modo Administrador (Descargas Ilimitadas)`;
+      } else {
+        DOM.userBadge.innerHTML = '<i class="fa-solid fa-shield"></i> Estudiante VIP';
+        DOM.userBadge.classList.remove('badge-admin-tag');
+        DOM.btnAdminPanel.classList.add('d-none');
+        DOM.btnAdminUserPanel.classList.add('d-none');
+        DOM.quotaDisplayContainer.innerHTML = `<span id="downloads-today-num">${state.progress.downloads_today}</span> <span class="slash">/</span> <span id="max-downloads-num">${state.progress.max_daily_downloads || 5}</span>`;
+        DOM.versionsQuotaBadge.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Consume 1 crédito de tu cuota diaria (5 máx)`;
+      }
+
+      renderCatalog();
+    }
+
+    function renderCatalog() {
+      const category = state.selectedCategory;
+      const query = state.searchQuery.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      state.filteredCatalog = state.catalog.filter(song => {
+        const matchesCategory = (category === "ALL") || (song.category.toLowerCase() === category.toLowerCase());
+        const songTitleNorm = (song.title || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const matchesQuery = !query || songTitleNorm.includes(query);
+        return matchesCategory && matchesQuery;
+      });
+
+      if (state.filteredCatalog.length === 0) {
+        DOM.songsGrid.innerHTML = `
+          <div class="loading-state" style="grid-column: 1 / -1; padding: 40px; text-align: center;">
+            <i class="fa-solid fa-magnifying-glass text-gold" style="font-size: 2.5rem; margin-bottom: 12px;"></i>
+            <p style="font-size: 1.1rem; color: var(--text-main);">No se encontraron partituras que coincidan con "<strong>${escapeHtml(state.searchQuery)}</strong>"</p>
+            <span class="text-muted" style="font-size: 0.85rem;">Prueba buscando otra palabra clave o seleccionando otra categoría.</span>
+          </div>`;
+        return;
+      }
+
+      DOM.songsGrid.innerHTML = state.filteredCatalog.map(song => {
+        const coverUrl = song.cover_image_url || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80';
+        
+        return `
+          <div class="song-card glass-panel" data-song-id="${song.id}">
+            <div class="song-card-cover">
+              <img src="${coverUrl}" alt="${song.title}" class="song-cover-img" loading="lazy">
+              <div class="song-cover-overlay"></div>
+              <span class="song-cover-badge"><i class="fa-solid fa-music"></i> ${song.category}</span>
+            </div>
+
+            <div class="song-card-body">
+              <h4 class="song-title">${song.title}</h4>
+              <p class="song-desc">${song.description || 'Partitura con notación guiada en castellano y pista de audio de acompañamiento.'}</p>
+            </div>
+
+            <div class="song-card-footer">
+              <div class="song-actions-row">
+                <button class="btn btn-outline-cyan btn-card-action" onclick="playSongTrack(${song.id})">
+                  <i class="fa-solid fa-circle-play"></i> Escuchar Audio
+                </button>
+                ${state.isAdmin ? `
+                  <button class="btn-edit-sm" onclick="openAdminModalForEdit(${song.id})" title="Editar Partitura & Versiones">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="btn-danger-sm" onclick="deleteSongFromCatalog(${song.id})" title="Eliminar Partitura">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                ` : ''}
+              </div>
+
+              <button class="btn btn-primary btn-block" onclick="openVersionsModal(${song.id})">
+                <i class="fa-solid fa-file-pdf"></i> Descargar partitura + PDF
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.openVersionsModal = function(songId) {
+      const song = state.catalog.find(s => s.id === songId);
+      if (!song) return;
+
+      DOM.versionsSongTitle.innerHTML = `<i class="fa-solid fa-file-pdf text-gold"></i> ${song.title}`;
+
+      const versions = song.song_versions || song.versions || [
+        { id: 1, version_name: 'Versión Notación Guiada (Do, Re, Mi)', pdf_url: song.pdf_r2_key || 'vault/partitura_guiada.pdf', audio_url: song.audio_r2_key || '' }
+      ];
+
+      DOM.versionsList.innerHTML = versions.map(v => `
+        <div class="version-item">
+          <div class="version-info">
+            <span class="version-name">${v.version_name}</span>
+            <span class="version-tag"><i class="fa-solid fa-check"></i> PDF y Audio MP3 Específico</span>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="openDownloadLinksModal('${escapeHtml(song.title)}', '${escapeHtml(v.version_name)}', '${escapeHtml(v.pdf_url || '')}', '${escapeHtml(v.audio_url || song.audio_r2_key || '')}')">
+            <i class="fa-solid fa-download"></i> Descargar
+          </button>
+        </div>
+      `).join('');
+
+      DOM.versionsModal.classList.remove('d-none');
+    };
+
+    window.openDownloadLinksModal = function(songTitle, versionName, pdfUrl, audioUrl) {
+      state.pendingDownload = { songTitle, versionName, pdfUrl, audioUrl };
+      DOM.dlSongTitle.innerHTML = `<i class="fa-solid fa-circle-down text-gold"></i> ${songTitle}`;
+      DOM.dlVersionName.textContent = versionName;
+      DOM.downloadLinksModal.classList.remove('d-none');
+    };
+
+    function triggerDirectDownload(fileType) {
+      const { songTitle, versionName, pdfUrl, audioUrl } = state.pendingDownload;
+
+      if (!state.isAdmin) {
+        if (state.progress.downloads_today >= (state.progress.max_daily_downloads || 5)) {
+          alert(`⚠️ Has alcanzado la cuota máxima de ${state.progress.max_daily_downloads || 5} descargas diarias. Vuelve mañana para continuar.`);
+          return;
+        }
+
+        state.progress.downloads_today++;
+        const numEl = document.getElementById('downloads-today-num');
+        if (numEl) numEl.textContent = state.progress.downloads_today;
+
+        if (supabaseClient && state.user) {
+          supabaseClient
+            .from('user_progress')
+            .update({ downloads_today: state.progress.downloads_today })
+            .eq('user_id', state.user.id);
+        }
+      }
+
+      const isPdf = fileType === 'pdf';
+      const fileName = isPdf ? 
+        `${songTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${versionName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf` :
+        `${songTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${versionName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_audio.mp3`;
+
+      const content = isPdf ?
+        `--- 365 FLAUTA DULCE (PARTITURA PDF) ---\nCanción: ${songTitle}\nVersión: ${versionName}\nLicencia: ${state.isAdmin ? 'Administrador' : 'Estudiante VIP'}\n` :
+        `--- 365 FLAUTA DULCE (AUDIO MP3 DE ESTA VERSIÓN) ---\nCanción: ${songTitle}\nVersión: ${versionName}\nLicencia: ${state.isAdmin ? 'Administrador' : 'Estudiante VIP'}\n`;
+
+      const blob = new Blob([content], { type: isPdf ? 'application/pdf' : 'audio/mpeg' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      DOM.downloadLinksModal.classList.add('d-none');
+      DOM.versionsModal.classList.add('d-none');
+
+      if (!state.isAdmin) {
+        alert(`✅ ¡Descarga iniciada (${isPdf ? 'PDF' : 'MP3 Específico'})!\nTe quedan ${(state.progress.max_daily_downloads || 5) - state.progress.downloads_today} descargas por hoy.`);
+      } else {
+        alert(`✅ Descarga iniciada en Modo Administrador (${isPdf ? 'PDF' : 'MP3 Específico'}).`);
+      }
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+    }
+
+    window.playSongTrack = function(songId) {
+      const song = state.catalog.find(s => s.id === songId);
+      if (!song) return;
+
+      state.currentTrack = song;
+      DOM.playerTrackTitle.textContent = song.title;
+      DOM.playerTrackSub.textContent = `${song.category} • Reproducción Libre`;
+      
+      DOM.audioPlayerBar.classList.remove('d-none');
+      
+      const audioSrc = song.audio_r2_key || 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3';
+      state.audioElement.src = audioSrc;
+      state.audioElement.play();
+      state.isPlaying = true;
+      DOM.playerBtnPlay.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    };
+
+    function toggleAudioPlay() {
+      if (!state.currentTrack) return;
+      if (state.isPlaying) {
+        state.audioElement.pause();
+        state.isPlaying = false;
+        DOM.playerBtnPlay.innerHTML = '<i class="fa-solid fa-play"></i>';
+      } else {
+        state.audioElement.play();
+        state.isPlaying = true;
+        DOM.playerBtnPlay.innerHTML = '<i class="fa-solid fa-pause"></i>';
+      }
+    }
+
+    function updateAudioProgress() {
+      if (state.audioElement.duration) {
+        const cur = state.audioElement.currentTime;
+        const dur = state.audioElement.duration;
+        DOM.playerSeek.value = (cur / dur) * 100;
+        DOM.playerTimeCurrent.textContent = formatTime(cur);
+        DOM.playerTimeTotal.textContent = formatTime(dur);
+      }
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    // ==========================================
+    // REGISTRO Y ALTA MANUAL DE USUARIOS POR EL ADMIN
+    // ==========================================
+
+    function openAdminUserModal() {
+      DOM.adminUserForm.reset();
+      DOM.adminUserModal.classList.remove('d-none');
+    }
+
+    async function handleAdminSaveUser(e) {
+      e.preventDefault();
+      const email = DOM.adminUserEmail.value.trim().toLowerCase();
+      const fullName = DOM.adminUserFullname.value.trim() || 'Estudiante VIP';
+
+      if (!email) return;
+
+      const newUserId = "user-" + Date.now();
+
+      if (supabaseClient) {
+        try {
+          const { error: profileError } = await supabaseClient
+            .from('profiles')
+            .insert([{ id: newUserId, email: email, full_name: fullName, is_admin: false, is_active: true }]);
+
+          await supabaseClient
+            .from('user_progress')
+            .insert([{ user_id: newUserId, unlocked_day: 365, max_daily_downloads: 5 }]);
+
+        } catch (err) {
+          console.log("Perfil agregado en Supabase o modo simulación");
+        }
+      }
+
+      alert(`✅ ¡Acceso VIP otorgado exitosamente!\nEl estudiante ${email} ya puede ingresar al portal ingresando su correo en la pantalla de inicio.`);
+      DOM.adminUserForm.reset();
+      DOM.adminUserModal.classList.add('d-none');
+    }
+
+    // ==========================================
+    // GESTOR DINÁMICO DE VERSIONES EN EL PANEL ADMIN
+    // ==========================================
+
+    function addAdminVersionRow(versionName = '', pdfUrl = '', audioUrl = '') {
+      const versionId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+      
+      const cardHtml = `
+        <div class="admin-version-card" id="${versionId}">
+          <div class="admin-version-card-header">
+            <span><i class="fa-solid fa-layer-group"></i> Versión de Partitura & Audio MP3</span>
+            <button type="button" class="btn-remove-version" onclick="removeAdminVersionRow('${versionId}')">
+              <i class="fa-solid fa-trash"></i> Eliminar
+            </button>
+          </div>
+          <input type="text" class="form-control mb-8 input-version-name" placeholder="Nombre de Versión (Ej: Notación Guiada Do-Re-Mi)" value="${escapeHtml(versionName)}" required>
+          <input type="text" class="form-control mb-8 input-version-pdf" placeholder="📄 Enlace o Key del archivo PDF" value="${escapeHtml(pdfUrl)}" required>
+          <input type="text" class="form-control input-version-audio" placeholder="🎵 Enlace o URL del Audio MP3 específico" value="${escapeHtml(audioUrl)}">
+        </div>
+      `;
+
+      DOM.adminVersionsContainer.insertAdjacentHTML('beforeend', cardHtml);
+    }
+
+    window.removeAdminVersionRow = function(versionId) {
+      const row = document.getElementById(versionId);
+      if (row) {
+        const totalRows = DOM.adminVersionsContainer.querySelectorAll('.admin-version-card').length;
+        if (totalRows <= 1) {
+          alert("La partitura debe tener al menos una versión registrada.");
+          return;
+        }
+        row.remove();
+      }
+    };
+
+    function openAdminModalForCreate() {
+      DOM.adminSongForm.reset();
+      DOM.adminSongId.value = '';
+      DOM.adminVersionsContainer.innerHTML = '';
+      
+      addAdminVersionRow('Versión Notación Guiada (Do, Re, Mi)', 'vault/partitura_guiada.pdf', 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3');
+
+      DOM.adminModalTitle.innerHTML = `<i class="fa-solid fa-plus-circle text-gold"></i> Panel Admin: Agregar Partitura`;
+      DOM.btnAdminSubmit.innerHTML = `<i class="fa-solid fa-plus-circle"></i> Publicar Partitura con Versiones`;
+      DOM.adminModal.classList.remove('d-none');
+    }
+
+    window.openAdminModalForEdit = function(songId) {
+      const song = state.catalog.find(s => s.id === songId);
+      if (!song) return;
+
+      DOM.adminSongId.value = song.id;
+      DOM.adminSongTitle.value = song.title || '';
+      DOM.adminSongCategory.value = song.category || 'Infantil';
+      DOM.adminSongDifficulty.value = song.difficulty || 'Principiante';
+      DOM.adminSongCover.value = song.cover_image_url || '';
+      DOM.adminSongAudio.value = song.audio_r2_key || '';
+      DOM.adminSongDesc.value = song.description || '';
+
+      DOM.adminVersionsContainer.innerHTML = '';
+      const versions = song.song_versions || song.versions || [];
+
+      if (versions.length > 0) {
+        versions.forEach(v => addAdminVersionRow(v.version_name, v.pdf_url, v.audio_url || song.audio_r2_key || ''));
+      } else {
+        addAdminVersionRow('Versión Notación Guiada (Do, Re, Mi)', song.pdf_r2_key || 'vault/partitura.pdf', song.audio_r2_key || '');
+      }
+
+      DOM.adminModalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-gold"></i> Panel Admin: Editar Partitura & Versiones`;
+      DOM.btnAdminSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Guardar Cambios en Partitura`;
+      DOM.adminModal.classList.remove('d-none');
+    };
+
+    async function handleAdminSaveSong(e) {
+      e.preventDefault();
+
+      const songId = DOM.adminSongId.value;
+      const title = DOM.adminSongTitle.value.trim();
+      const category = DOM.adminSongCategory.value;
+      const difficulty = DOM.adminSongDifficulty.value;
+      const coverUrl = DOM.adminSongCover.value.trim() || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80';
+      const audioUrl = DOM.adminSongAudio.value.trim() || 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3';
+      const desc = DOM.adminSongDesc.value.trim();
+
+      const versionCards = DOM.adminVersionsContainer.querySelectorAll('.admin-version-card');
+      const compiledVersions = [];
+
+      versionCards.forEach(card => {
+        const nameInput = card.querySelector('.input-version-name');
+        const pdfInput = card.querySelector('.input-version-pdf');
+        const audioInput = card.querySelector('.input-version-audio');
+        
+        if (nameInput && pdfInput && nameInput.value.trim()) {
+          compiledVersions.push({
+            version_name: nameInput.value.trim(),
+            pdf_url: pdfInput.value.trim() || 'vault/partitura.pdf',
+            audio_url: (audioInput && audioInput.value.trim()) ? audioInput.value.trim() : audioUrl
+          });
+        }
+      });
+
+      if (!title) return;
+      if (compiledVersions.length === 0) {
+        alert("Debes agregar al menos una versión en PDF.");
+        return;
+      }
+
+      if (songId) {
+        const songIndex = state.catalog.findIndex(s => s.id == songId);
+        if (songIndex !== -1) {
+          state.catalog[songIndex].title = title;
+          state.catalog[songIndex].category = category;
+          state.catalog[songIndex].difficulty = difficulty;
+          state.catalog[songIndex].cover_image_url = coverUrl;
+          state.catalog[songIndex].audio_r2_key = audioUrl;
+          state.catalog[songIndex].description = desc;
+          state.catalog[songIndex].versions = compiledVersions;
+          state.catalog[songIndex].song_versions = compiledVersions;
+        }
+
+        if (supabaseClient) {
+          await supabaseClient
+            .from('songs_catalog')
+            .update({ title, category, difficulty, cover_image_url: coverUrl, audio_r2_key: audioUrl, description: desc })
+            .eq('id', songId);
+
+          await supabaseClient.from('song_versions').delete().eq('song_id', songId);
+          for (const v of compiledVersions) {
+            await supabaseClient.from('song_versions').insert([{ song_id: songId, version_name: v.version_name, pdf_url: v.pdf_url, audio_url: v.audio_url }]);
+          }
+        }
+
+        alert("✨ ¡Partitura y versiones (PDF + MP3) actualizadas exitosamente!");
+      } else {
+        const newSong = {
+          id: Date.now(),
+          title, category, difficulty,
+          cover_image_url: coverUrl,
+          audio_r2_key: audioUrl,
+          description: desc,
+          versions: compiledVersions,
+          song_versions: compiledVersions
+        };
+
+        if (supabaseClient) {
+          const { data: insertedSong } = await supabaseClient
+            .from('songs_catalog')
+            .insert([{ title, category, difficulty, cover_image_url: coverUrl, audio_r2_key: audioUrl, description: desc }])
+            .select();
+
+          if (insertedSong && insertedSong[0]) {
+            const createdSongId = insertedSong[0].id;
+            for (const v of compiledVersions) {
+              await supabaseClient.from('song_versions').insert([{ song_id: createdSongId, version_name: v.version_name, pdf_url: v.pdf_url, audio_url: v.audio_url }]);
+            }
+            newSong.id = createdSongId;
+          }
+        }
+
+        state.catalog.unshift(newSong);
+        alert("✨ ¡Nueva partitura publicada con éxito!");
+      }
+
+      DOM.adminSongForm.reset();
+      DOM.adminModal.classList.add('d-none');
+      renderCatalog();
+    }
+
+    window.deleteSongFromCatalog = async function(songId) {
+      if (!state.isAdmin) return;
+      if (!confirm("¿Deseas eliminar esta partitura y todas sus versiones del catálogo?")) return;
+
+      if (supabaseClient) {
+        await supabaseClient.from('songs_catalog').delete().eq('id', songId);
+      }
+
+      state.catalog = state.catalog.filter(s => s.id !== songId);
+      renderCatalog();
+    };
+  </script>
+</body>
+</html>
