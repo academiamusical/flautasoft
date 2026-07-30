@@ -1395,24 +1395,32 @@
 
       if (!email) return;
 
-      const newUserId = "user-" + Date.now();
-
       if (supabaseClient) {
         try {
-          const { error: profileError } = await supabaseClient
-            .from('profiles')
-            .insert([{ id: newUserId, email: email, full_name: fullName, is_admin: false, is_active: true }]);
+          // Intentar vía RPC (Función Segura de Supabase)
+          const { data, error } = await supabaseClient.rpc('admin_create_user', {
+            user_email: email,
+            user_name: fullName
+          });
 
-          await supabaseClient
-            .from('user_progress')
-            .insert([{ user_id: newUserId, unlocked_day: 365, max_daily_downloads: 5 }]);
+          if (error) {
+            console.warn("RPC no encontrado o error, intentando inserción con UUID v4:", error);
+            const validUuid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : '00000000-0000-4000-a000-' + Date.now().toString(16).padStart(12, '0');
+            
+            await supabaseClient
+              .from('profiles')
+              .insert([{ id: validUuid, email: email, full_name: fullName, is_admin: false, is_active: true }]);
 
+            await supabaseClient
+              .from('user_progress')
+              .insert([{ user_id: validUuid, unlocked_day: 365, max_daily_downloads: 5 }]);
+          }
         } catch (err) {
-          console.log("Perfil agregado en Supabase o modo simulación");
+          console.error("Error al registrar perfil en Supabase:", err);
         }
       }
 
-      alert(`✅ ¡Acceso VIP otorgado exitosamente!\nEl estudiante ${email} ya puede ingresar al portal ingresando su correo en la pantalla de inicio.`);
+      alert(`✅ ¡Acceso VIP otorgado exitosamente!\nEl estudiante ${email} ya puede ingresar al portal desde este momento.`);
       DOM.adminUserForm.reset();
       DOM.adminUserModal.classList.add('d-none');
     }
